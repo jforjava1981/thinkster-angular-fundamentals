@@ -26,7 +26,7 @@ export class AppComponent {
     }
     
     
-    onVote(event,movie:Movie) {
+    onVote(movie:Movie) {
       if(this.voted === true) { //already voted
         this.voted = false;
         movie.chosen.isChosen = false;
@@ -35,7 +35,13 @@ export class AppComponent {
         this.voted = true;
         movie.chosen = {isChosen:true, chosenText:'Chosen!!'};
       }
-      event.target.innerText = event.target.innerText === 'Vote'? 'Unvote' : 'Vote';     
-    }  
+    }
+    
+    getButtonText(movie) {
+      if(movie.chosen?.isChosen){
+        return 'Unvote';
+      }
+      return 'Vote';
+    }
 
 }

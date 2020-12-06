@@ -4,27 +4,27 @@
     <div>
       <img [src]="movies[0].url" [alt]="movies[0].title">
     </div>
-    <button [disabled]="voted && !movies[0].chosen?.isChosen" (click)="onVote($event,movies[0])">Vote</button>
+    <button [disabled]="voted && !movies[0].chosen?.isChosen" (click)="onVote(movies[0])">{{getButtonText(movies[0])}}</button>
   </div>
   <div class="movie">
     <div>{{movies[1].chosen?.chosenText}}</div>
     <div>
       <img [src]="movies[1].url" [alt]="movies[1].title">
     </div>
-    <button [disabled]="voted  && !movies[1].chosen?.isChosen" (click)="onVote($event,movies[1])">Vote</button>
+    <button [disabled]="voted  && !movies[1].chosen?.isChosen" (click)="onVote(movies[1])">{{getButtonText(movies[1])}}</button>
   </div>
   <div class="movie">
     <div>{{movies[2].chosen?.chosenText}}</div>
     <div>
       <img [src]="movies[2].url" [alt]="movies[2].title">
     </div>
-    <button [disabled]="voted && !movies[2].chosen?.isChosen" (click)="onVote($event,movies[2])">Vote</button>
+    <button [disabled]="voted && !movies[2].chosen?.isChosen" (click)="onVote(movies[2])">{{getButtonText(movies[2])}}</button>
   </div>
   <div class="movie">
     <div>{{movies[3].chosen?.chosenText}}</div>
     <div>
       <img [src]="movies[3].url" [alt]="movies[3].title">
     </div>
-    <button [disabled]="voted && !movies[3].chosen?.isChosen" (click)="onVote($event,movies[3])">Vote</button>
+    <button [disabled]="voted && !movies[3].chosen?.isChosen" (click)="onVote(movies[3])">{{getButtonText(movies[3])}}</button>
   </div>
   </div>
