@@ -1,0 +1,9 @@
+.movies-container {
+    flex-direction: row;
+    display: flex;
+}
+.movie {
+    display: flex; 
+    flex-direction: column;
+    margin:20px;  
+}
