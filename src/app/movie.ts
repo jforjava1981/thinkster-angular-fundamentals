@@ -1,5 +1,9 @@
 export interface Movie {
     title:string,
     url:string,
-    isChosen?:string
+    chosen?: {
+        isChosen:boolean,
+        chosenText:string
+    }
+    
 }
