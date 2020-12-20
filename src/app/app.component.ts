@@ -1,12 +1,15 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { BehaviorSubject, Subject, Observable } from 'rxjs';
 import { Movie } from './movie';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  changeDetection:ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-  movies:Array<Movie> = [{
+ 
+  private movies:Array<Movie> = [{
     url : "https://m.media-amazon.com/images/M/MV5BMDFkYTc0MGEtZmNhMC00ZDIzLWFmNTEtODM1ZmRlYWMwMWFmXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_UY67_CR0,0,45,67_AL_.jpg",
     title:"Shawshank's redemption"
    },{
@@ -20,21 +23,52 @@ export class AppComponent {
      title:"12 Angry Men"
     }];
 
-    voted:boolean = false;
+    private stateSubject:Subject<{movies:Array<Movie>,voted:boolean}>;
+    
+    initialState : {movies:Array<Movie>,voted:boolean} = {
+      movies : this.movies,
+      voted: false
+    }     
+
+    state$:Observable<{movies:Array<Movie>,voted:boolean}>;
 
     constructor(){
+      this.stateSubject = 
+       new BehaviorSubject<{movies:Array<Movie>,voted:boolean}> (this.initialState);
+       this.state$ = this.stateSubject.asObservable(); 
     }
-    
-    
-    onVote(movie:Movie) {
-      if(this.voted === true) { //already voted
-        this.voted = false;
-        movie.chosen.isChosen = false;
-        movie.chosen.chosenText = "";
+
+    private updateMovies(movie:Movie, updatedState:{isChosen:boolean,chosenText:string}):Array<Movie> {
+      return this.initialState.movies.map(currentMovie => {
+        if(currentMovie.title !== movie.title) {
+          return currentMovie;
+        }
+        return {
+          ...currentMovie,
+          ...movie,
+          ...{chosen:updatedState}
+        }
+      });
+    }
+
+    private voteMovie(movie:Movie) {
+      let moviesUpdated = this.updateMovies(movie,{isChosen:true,chosenText:'Chosen!!'});
+      return {...this.initialState,movies:moviesUpdated,voted:true};      
+    }
+
+    unVoteMovie(movie:Movie) {
+      let  moviesUpdated = this.updateMovies(movie,{isChosen:false,chosenText:''});
+      return {...this.initialState,movies:moviesUpdated,voted:false};
+    }
+
+    onVote(movie:Movie,voted:boolean) {
+      let newState;
+      if(voted === true) { //already voted
+        newState = this.unVoteMovie(movie);
       }else{
-        this.voted = true;
-        movie.chosen = {isChosen:true, chosenText:'Chosen!!'};
+        newState = this.voteMovie(movie);
       }
+      this.stateSubject.next(newState);
     }
     
     getButtonText(movie) {
@@ -44,4 +78,7 @@ export class AppComponent {
       return 'Vote';
     }
 
+    movieTracker(index:number,movie:Movie){
+      return movie.title;
+    }
 }

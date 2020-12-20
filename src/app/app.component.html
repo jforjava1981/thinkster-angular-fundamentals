@@ -1,30 +1,11 @@
-<div class="movies-container">
-  <div class="movie">
-    <div>{{movies[0].chosen?.chosenText}}</div>
-    <div>
-      <img [src]="movies[0].url" [alt]="movies[0].title">
-    </div>
-    <button [disabled]="voted && !movies[0].chosen?.isChosen" (click)="onVote(movies[0])">{{getButtonText(movies[0])}}</button>
-  </div>
-  <div class="movie">
-    <div>{{movies[1].chosen?.chosenText}}</div>
-    <div>
-      <img [src]="movies[1].url" [alt]="movies[1].title">
-    </div>
-    <button [disabled]="voted  && !movies[1].chosen?.isChosen" (click)="onVote(movies[1])">{{getButtonText(movies[1])}}</button>
-  </div>
-  <div class="movie">
-    <div>{{movies[2].chosen?.chosenText}}</div>
-    <div>
-      <img [src]="movies[2].url" [alt]="movies[2].title">
-    </div>
-    <button [disabled]="voted && !movies[2].chosen?.isChosen" (click)="onVote(movies[2])">{{getButtonText(movies[2])}}</button>
-  </div>
-  <div class="movie">
-    <div>{{movies[3].chosen?.chosenText}}</div>
-    <div>
-      <img [src]="movies[3].url" [alt]="movies[3].title">
-    </div>
-    <button [disabled]="voted && !movies[3].chosen?.isChosen" (click)="onVote(movies[3])">{{getButtonText(movies[3])}}</button>
-  </div>
+<ng-container *ngIf="state$ | async as movieState">
+  <div class="movies-container">
+    <div class="movie" *ngFor="let movie of movieState.movies trackBy:movieTracker">
+      <div>{{movie.chosen?.chosenText}}</div>
+      <div>{{movie.title}}</div>
+      <div>
+        <img [src]="movie.url" [alt]="movie.title">
+      </div>
+      <button [disabled]="movieState.voted && !movie.chosen?.isChosen" (click)="onVote(movie,movieState.voted)">{{getButtonText(movie)}}</button>
+    </div>   
   </div>
