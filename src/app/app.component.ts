@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable, from } from 'rxjs';
-import { map,reduce,scan,concatMap,tap } from 'rxjs/operators';
+import { map,reduce,scan,concatMap } from 'rxjs/operators';
+import { Action, VoteAction, UnVoteAction } from './actions';
+import { MovieState } from './movie.state';
 import { Movie } from './movie';
 
 @Component({
@@ -25,17 +27,17 @@ export class AppComponent implements OnInit{
      title:"12 Angry Men"
     }];
 
-    private actionSubject:BehaviorSubject<{action:string,payload:any}>;
+    private actionSubject:BehaviorSubject<Action>;
 
-    state$:Observable<{movies:Array<Movie>,voted:boolean}>;
+    state$:Observable<MovieState>;
 
     constructor(){
-       this.actionSubject = new BehaviorSubject<{action:string,payload:any}>({action:'init',payload:{}}); 
+       this.actionSubject = new BehaviorSubject<Action>({type:'init',payload:{}}); 
     }
 
     ngOnInit(){
       let reducers = [this.voteMovie,this.unVoteMovie];
-      let initialState : {movies:Array<Movie>,voted:boolean} = {
+      let initialState : MovieState = {
         movies : this.movies,
         voted: false
       };
@@ -44,12 +46,12 @@ export class AppComponent implements OnInit{
                     concatMap(action => from(reducers).pipe(
                       map(reducer => [action,reducer]),
                       reduce((acc,
-                        next:[{action:string,payload:any},Function]) => next[1](next[0],acc),initialState),
+                        next:[Action,Function]) => next[1](next[0],acc),initialState),
                       )),
                     scan((accState,next) => { return {...accState,...next}},initialState));                                                    
     }
 
-    private static updateMovies(movie:Movie,state:{movies:Array<Movie>,voted:boolean}, updatedState:{isChosen:boolean,chosenText:string}):Array<Movie> {
+    private static updateMovies(movie:Movie,state:MovieState, updatedState:{isChosen:boolean,chosenText:string}):Array<Movie> {
       return state.movies.map(currentMovie => {
         if(currentMovie.title !== movie.title) {
           return currentMovie;
@@ -62,25 +64,26 @@ export class AppComponent implements OnInit{
       });
     }
 
-    private voteMovie(action:{action:string,payload:any}, state:{movies:Array<Movie>, voted:boolean}) {
-      if(action.action === 'User Voted'){
+    private voteMovie(action:VoteAction, state:MovieState):MovieState {
+      if(action.type === 'User Voted'){
         let moviesUpdated = AppComponent.updateMovies(action.payload.movie,state,{isChosen:true,chosenText:'Chosen!!'});
         return {...state,movies:moviesUpdated,voted:true};      
       }
       return state;    
     }
 
-    unVoteMovie(action:{action:string,payload:any}, state:{movies:Array<Movie>, voted:boolean}) {
-      if(action.action === 'User UnVoted'){
+    unVoteMovie(action:UnVoteAction, state:MovieState):MovieState {
+      if(action.type === 'User UnVoted'){
         let  moviesUpdated = AppComponent.updateMovies(action.payload.movie,state,{isChosen:false,chosenText:''});
         return {...state,movies:moviesUpdated,voted:false};
       }
       return state;
     }
 
-    onVote(movie:Movie,voted:boolean) {
-      let action = voted ? 'User UnVoted':'User Voted';
-      this.actionSubject.next({action:action,payload:{movie,voted}});
+    onVote(movie:Movie,voted:boolean):void{
+      let action:VoteAction|UnVoteAction = voted ? {type:'User UnVoted',payload:{movie,voted}}
+      :{type:'User Voted',payload:{movie,voted}};
+      this.actionSubject.next(action);
     }
     
     getButtonText(movie) {
