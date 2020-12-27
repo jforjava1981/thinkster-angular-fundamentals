@@ -1,4 +1,4 @@
-<ng-container *ngIf="state$ | async as movieState">
+<ng-container *ngIf="movieState$ | async as movieState">
   <div class="movies-container">
     <div class="movie" *ngFor="let movie of movieState.movies trackBy:movieTracker">
       <app-movie [movie]="movie" [voted]="movieState.voted" (onVote)="vote($event)"></app-movie>
