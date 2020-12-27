@@ -1,0 +1,6 @@
+<div>{{movie.chosen?.chosenText}}</div>
+<div>{{movie.title}}</div>
+<div>
+    <img [src]="movie.url" [alt]="movie.title">
+</div>
+<button [disabled]="voted && !movie.chosen?.isChosen" (click)="onVote()">{{getButtonText()}}</button>

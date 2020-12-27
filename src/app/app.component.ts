@@ -4,6 +4,7 @@ import { map,reduce,scan,concatMap } from 'rxjs/operators';
 import { Action, VoteAction, UnVoteAction } from './actions';
 import { MovieState } from './movie.state';
 import { Movie } from './movie';
+import { VoteEvent } from './vote.event';
 
 @Component({
   selector: 'app-root',
@@ -80,19 +81,15 @@ export class AppComponent implements OnInit{
       return state;
     }
 
-    onVote(movie:Movie,voted:boolean):void{
+    vote(voteEvent:VoteEvent):void{
+      let movie = voteEvent.movie;
+      let voted = voteEvent.voted;
       let action:VoteAction|UnVoteAction = voted ? {type:'User UnVoted',payload:{movie,voted}}
       :{type:'User Voted',payload:{movie,voted}};
+
       this.actionSubject.next(action);
     }
     
-    getButtonText(movie) {
-      if(movie.chosen?.isChosen){
-        return 'Unvote';
-      }
-      return 'Vote';
-    }
-
     movieTracker(index:number,movie:Movie){
       return movie.title;
     }
