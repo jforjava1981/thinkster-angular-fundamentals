@@ -1,13 +1,15 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { BehaviorSubject, Observable, from } from 'rxjs';
+import { map,reduce,scan,concatMap,tap } from 'rxjs/operators';
 import { Movie } from './movie';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   changeDetection:ChangeDetectionStrategy.OnPush
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
  
   private movies:Array<Movie> = [{
     url : "https://m.media-amazon.com/images/M/MV5BMDFkYTc0MGEtZmNhMC00ZDIzLWFmNTEtODM1ZmRlYWMwMWFmXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_UY67_CR0,0,45,67_AL_.jpg",
@@ -23,23 +25,32 @@ export class AppComponent {
      title:"12 Angry Men"
     }];
 
-    private stateSubject:Subject<{movies:Array<Movie>,voted:boolean}>;
-    
-    initialState : {movies:Array<Movie>,voted:boolean} = {
-      movies : this.movies,
-      voted: false
-    }     
+    private actionSubject:BehaviorSubject<{action:string,payload:any}>;
 
     state$:Observable<{movies:Array<Movie>,voted:boolean}>;
 
     constructor(){
-      this.stateSubject = 
-       new BehaviorSubject<{movies:Array<Movie>,voted:boolean}> (this.initialState);
-       this.state$ = this.stateSubject.asObservable(); 
+       this.actionSubject = new BehaviorSubject<{action:string,payload:any}>({action:'init',payload:{}}); 
     }
 
-    private updateMovies(movie:Movie, updatedState:{isChosen:boolean,chosenText:string}):Array<Movie> {
-      return this.initialState.movies.map(currentMovie => {
+    ngOnInit(){
+      let reducers = [this.voteMovie,this.unVoteMovie];
+      let initialState : {movies:Array<Movie>,voted:boolean} = {
+        movies : this.movies,
+        voted: false
+      };
+      this.state$ = this.actionSubject.asObservable()
+                  .pipe(
+                    concatMap(action => from(reducers).pipe(
+                      map(reducer => [action,reducer]),
+                      reduce((acc,
+                        next:[{action:string,payload:any},Function]) => next[1](next[0],acc),initialState),
+                      )),
+                    scan((accState,next) => { return {...accState,...next}},initialState));                                                    
+    }
+
+    private static updateMovies(movie:Movie,state:{movies:Array<Movie>,voted:boolean}, updatedState:{isChosen:boolean,chosenText:string}):Array<Movie> {
+      return state.movies.map(currentMovie => {
         if(currentMovie.title !== movie.title) {
           return currentMovie;
         }
@@ -51,24 +62,25 @@ export class AppComponent {
       });
     }
 
-    private voteMovie(movie:Movie) {
-      let moviesUpdated = this.updateMovies(movie,{isChosen:true,chosenText:'Chosen!!'});
-      return {...this.initialState,movies:moviesUpdated,voted:true};      
+    private voteMovie(action:{action:string,payload:any}, state:{movies:Array<Movie>, voted:boolean}) {
+      if(action.action === 'User Voted'){
+        let moviesUpdated = AppComponent.updateMovies(action.payload.movie,state,{isChosen:true,chosenText:'Chosen!!'});
+        return {...state,movies:moviesUpdated,voted:true};      
+      }
+      return state;    
     }
 
-    unVoteMovie(movie:Movie) {
-      let  moviesUpdated = this.updateMovies(movie,{isChosen:false,chosenText:''});
-      return {...this.initialState,movies:moviesUpdated,voted:false};
+    unVoteMovie(action:{action:string,payload:any}, state:{movies:Array<Movie>, voted:boolean}) {
+      if(action.action === 'User UnVoted'){
+        let  moviesUpdated = AppComponent.updateMovies(action.payload.movie,state,{isChosen:false,chosenText:''});
+        return {...state,movies:moviesUpdated,voted:false};
+      }
+      return state;
     }
 
     onVote(movie:Movie,voted:boolean) {
-      let newState;
-      if(voted === true) { //already voted
-        newState = this.unVoteMovie(movie);
-      }else{
-        newState = this.voteMovie(movie);
-      }
-      this.stateSubject.next(newState);
+      let action = voted ? 'User UnVoted':'User Voted';
+      this.actionSubject.next({action:action,payload:{movie,voted}});
     }
     
     getButtonText(movie) {
