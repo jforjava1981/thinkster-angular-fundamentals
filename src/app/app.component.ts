@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Movie } from './movie';
-import { MovieService } from './movie.service';
-import { MovieState } from './movie.state';
+import { MovieState, MovieStateManager } from './movie.state';
 import { VoteEvent } from './vote.event';
 
 @Component({
@@ -15,15 +14,15 @@ export class AppComponent implements OnInit{
   
     movieState$:Observable<MovieState>;
 
-    constructor(private movieService:MovieService){
+    constructor(private movieStateManager:MovieStateManager){
     }
 
     ngOnInit(){
-      this.movieState$ = this.movieService.movieState$;
+      this.movieState$ = this.movieStateManager.movieState$;
     }
    
     vote(voteEvent:VoteEvent):void{      
-      this.movieService.voteForMovie(voteEvent.movie,voteEvent.voted)
+      this.movieStateManager.voteForMovie(voteEvent.movie,voteEvent.voted)
     }
     
     movieTracker(index:number,movie:Movie){
