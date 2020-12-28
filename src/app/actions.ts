@@ -14,3 +14,8 @@ export interface UnVoteAction extends Action{
     type:'User UnVoted',
     payload:{movie:Movie,voted:boolean}
 }
+
+export interface MoviesLoadedAction extends Action{
+    type:'Movies Loaded',
+    payload: {movies:Array<Movie>}
+}

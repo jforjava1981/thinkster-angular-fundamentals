@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Movie } from './movie';
 
 @Injectable({
@@ -25,7 +26,7 @@ export class MovieService {
     constructor(){      
     }
 
-    getMovies(){
-      return this.movies;
+    getMovies():Observable<Array<Movie>>{
+      return of(this.movies);
     }
 }

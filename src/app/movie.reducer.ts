@@ -1,4 +1,4 @@
-import { UnVoteAction, VoteAction } from "./actions";
+import { MoviesLoadedAction, UnVoteAction, VoteAction } from "./actions";
 import { Movie } from './movie';
 import { MovieState } from './movie.state';
 
@@ -30,8 +30,16 @@ const voteMovie = function(action:VoteAction, state:MovieState):MovieState {
     }
     return state;
   }
+
+  const loadMovies = function(action:MoviesLoadedAction, state:MovieState):MovieState{
+    if(action.type === 'Movies Loaded'){
+      let  moviesUpdated = [...action.payload.movies];
+      return {...state,movies:moviesUpdated};  
+    }
+    return state;
+  }
   
-  const reducers = [voteMovie,unVoteMovie] 
+  const reducers = [voteMovie,unVoteMovie,loadMovies] 
   export function getReducers(){
     return reducers;
   }
